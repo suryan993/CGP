@@ -5,8 +5,17 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     public Transform planet; // drag the planet here
+    Transform playerRotationCore; // allows the player to tilt around the surface of the planet
     float radius = 520; // planet radius
     float vel = 6; // player speed - degrees per second
+    float[] laneAngles = { 0.02f, 0.01f, 0.0f, -0.01f, -0.02f }; // z values for where to rotate to be in each lane
+    int leftmostLane; // array index to show how far the player is allowed to move at present
+    int rightmostLane; // all these ints are array indices
+    int currentLane;
+    int destinationLane;
+    bool isChangingLeft = false;
+    bool isChangingRight = false;
+    float laneChangeVel = 6; // player speed in z rotating around the playerRotationCore
     public GameObject[] prefabs; // drag the item prefabs here
     int qntItems = 30; // how many items populate the scene
     float bornAngle = 0; // items born at this X angle
@@ -22,17 +31,21 @@ public class Player : MonoBehaviour
 
     void Start()
     {
+        playerRotationCore = transform.parent;
+        leftmostLane = 0; // These can change depending on conditions during play
+        rightmostLane = 4;
+        currentLane = 2;
         items = new GameObject[qntItems];
         // populate planet
         for (var i = 0; i < qntItems; i++)
         {
             // create a random item
-            GameObject item = Instantiate(prefabs[Random.Range(0, prefabs.Length)]);
-            MoveItem(item, Random.Range(bornAngle, killAngle)); // move it to a random position
-            item.transform.SetParent(planet); // child item to the planet
-            items[i] = item;
+            //GameObject item = Instantiate(prefabs[Random.Range(0, prefabs.Length)]);
+            //MoveItem(item, Random.Range(bornAngle, killAngle)); // move it to a random position
+            //item.transform.SetParent(planet); // child item to the planet
+            //items[i] = item;
         }
-        lastPickup = CreatePickup();
+        //lastPickup = CreatePickup();
     }
 
     void Update()
@@ -48,18 +61,60 @@ public class Player : MonoBehaviour
         {
             //animation.CrossFade("idle"); // else play "idle"
         }
-        for (var i = 0; i < qntItems; i++)
+
+        //for (var i = 0; i < qntItems; i++)
+        //{
+        //    // if item passed the kill angle from Z axis...
+        //    if (Vector3.Angle(items[i].transform.up, Vector3.forward) > killAngle)
+        //    {
+        //        // replant it at the born angle, at random position
+        //        MoveItem(items[i], bornAngle);
+        //    }
+        //}
+        //if (Vector3.Angle(lastPickup.transform.up, Vector3.forward) > pickupAngle)
+        //{
+        //    lastPickup = CreatePickup();
+        //}
+
+        // Check for and handle lane changes
+        float hAxis = Input.GetAxis("Horizontal");
+        if (!isChangingLeft && !isChangingRight)
         {
-            // if item passed the kill angle from Z axis...
-            if (Vector3.Angle(items[i].transform.up, Vector3.forward) > killAngle)
+            if (hAxis < -0.1 && currentLane > leftmostLane)
             {
-                // replant it at the born angle, at random position
-                MoveItem(items[i], bornAngle);
+                destinationLane = currentLane - 1;
+                isChangingLeft = true;
+            }
+            else if (hAxis > 0.1 && currentLane < rightmostLane)
+            {
+                destinationLane = currentLane + 1;
+                isChangingRight = true;
+            }
+
+        }
+        else if (isChangingLeft)
+        {
+            if (playerRotationCore.rotation.z >= laneAngles[destinationLane])
+            {
+                currentLane = destinationLane;
+                isChangingLeft = false;
+            }
+            else // Rotate player toward the new lane
+            {
+                playerRotationCore.Rotate(0, 0, laneChangeVel * Time.deltaTime);
             }
         }
-        if (Vector3.Angle(lastPickup.transform.up, Vector3.forward) > pickupAngle)
+        else if (isChangingRight)
         {
-            lastPickup = CreatePickup();
+            if (playerRotationCore.rotation.z <= laneAngles[destinationLane])
+            {
+                currentLane = destinationLane;
+                isChangingRight = false;
+            }
+            else // Rotate player toward the new lane
+            {
+                playerRotationCore.Rotate(0, 0, -laneChangeVel * Time.deltaTime);
+            }
         }
     }
 
