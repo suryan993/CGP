@@ -168,11 +168,9 @@ public class Player : MonoBehaviour
 
     void OnTriggerEnter(Collider objectHit)
     {
-        Debug.Log("Collision");
         GratableObject objectQualities = objectHit.GetComponent<GratableObject>();
         if (objectQualities != null)
         {
-            Debug.Log("And its slowdown value is " + objectQualities.slowdownOnHit);
             currentVelocity = currentVelocity - objectQualities.slowdownOnHit;
             if (currentVelocity < minVelocity)
             {
