@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
@@ -10,7 +11,8 @@ public class Player : MonoBehaviour
     float currentVelocity; // player speed - degrees per second
     float overallAcceleration;
     float minVelocity = 6;
-    float maxVelocity = 100;
+    float maxVelocity = 50;
+    public Slider speedDisplay;
     float[] laneAngles = { 0.02f, 0.01f, 0.0f, -0.01f, -0.02f }; // z values for where to rotate to be in each lane
     int leftmostLane; // array index to show how far the player is allowed to move at present
     int rightmostLane; // all these ints are array indices
@@ -72,6 +74,9 @@ public class Player : MonoBehaviour
         {
             currentVelocity = maxVelocity;
         }
+
+        // Display current velocity
+        speedDisplay.value = (float) (currentVelocity - minVelocity) / maxVelocity;
 
         //for (var i = 0; i < qntItems; i++)
         //{
