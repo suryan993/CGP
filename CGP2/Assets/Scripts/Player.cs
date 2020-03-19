@@ -7,7 +7,9 @@ public class Player : MonoBehaviour
     public Transform planet; // drag the planet here
     Transform playerRotationCore; // allows the player to tilt around the surface of the planet
     float radius = 520; // planet radius
-    float vel = 6; // player speed - degrees per second
+    float currentVelocity = 6; // player speed - degrees per second
+    float overallAcceleration;
+    float maxVelocity = 100;
     float[] laneAngles = { 0.02f, 0.01f, 0.0f, -0.01f, -0.02f }; // z values for where to rotate to be in each lane
     int leftmostLane; // array index to show how far the player is allowed to move at present
     int rightmostLane; // all these ints are array indices
@@ -32,9 +34,11 @@ public class Player : MonoBehaviour
     void Start()
     {
         playerRotationCore = transform.parent;
-        leftmostLane = 0; // These can change depending on conditions during play
+        leftmostLane = 0; // The number of lanes can change depending on conditions during play
         rightmostLane = 4;
         currentLane = 2;
+        overallAcceleration = 2; // Different conditions can have different default acceleration
+
         items = new GameObject[qntItems];
         // populate planet
         for (var i = 0; i < qntItems; i++)
@@ -50,16 +54,16 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        // rotate planet according to up/down arrow keys
-        float vAxis = Input.GetAxis("Vertical");
-        if (vAxis > 0.1)
-        { // if moving forward...
-            planet.transform.Rotate(-vAxis * vel * Time.deltaTime, 0, 0); // rotate planet
-            //animation.CrossFade("walk"); // play "walk" animation
-        }
-        else
+        // Rotate planet according to player's velocity
+        planet.transform.Rotate(-currentVelocity * Time.deltaTime, 0, 0); // rotate planet
+        //animation.CrossFade("walk"); // play "walk" animation
+        //animation.CrossFade("idle"); // else play "idle"
+
+        // Accelerate regularly
+        currentVelocity = currentVelocity + overallAcceleration * Time.deltaTime;
+        if (currentVelocity > maxVelocity)
         {
-            //animation.CrossFade("idle"); // else play "idle"
+            currentVelocity = maxVelocity;
         }
 
         //for (var i = 0; i < qntItems; i++)
