@@ -6,9 +6,10 @@ public class Player : MonoBehaviour
 {
     public Transform planet; // drag the planet here
     Transform playerRotationCore; // allows the player to tilt around the surface of the planet
-    float radius = 520; // planet radius
-    float currentVelocity = 6; // player speed - degrees per second
+    float radius = 25; // planet radius
+    float currentVelocity; // player speed - degrees per second
     float overallAcceleration;
+    float minVelocity = 6;
     float maxVelocity = 100;
     float[] laneAngles = { 0.02f, 0.01f, 0.0f, -0.01f, -0.02f }; // z values for where to rotate to be in each lane
     int leftmostLane; // array index to show how far the player is allowed to move at present
@@ -24,12 +25,13 @@ public class Player : MonoBehaviour
     float killAngle = 90; // items disappear after this angle
     float pathAngle = 10; // path angle from vertical
     float grassAngle = 45; // end of grass angle from vertical
-    public GameObject[] pickupPrefabs; // drag the pickup prefabs here
-    float pickupAngle = 7; // degrees between pickups
-    float pickupHeight = 1; // pickup height above ground
+    public GameObject[] gratablePrefabs; // drag the gratable prefabs here
+    float gratableAngle = 7; // degrees between gratable objects
+    float playerHeight = 0.25f; // general height above ground where the player can be found
+    GameObject lastGratable; // last gratable object created
 
+    [System.NonSerialized]
     public GameObject[] items;
-    GameObject lastPickup; // last pickup created
 
     void Start()
     {
@@ -38,18 +40,23 @@ public class Player : MonoBehaviour
         rightmostLane = 4;
         currentLane = 2;
         overallAcceleration = 2; // Different conditions can have different default acceleration
+        currentVelocity = minVelocity;
 
-        items = new GameObject[qntItems];
-        // populate planet
-        for (var i = 0; i < qntItems; i++)
-        {
-            // create a random item
-            //GameObject item = Instantiate(prefabs[Random.Range(0, prefabs.Length)]);
-            //MoveItem(item, Random.Range(bornAngle, killAngle)); // move it to a random position
-            //item.transform.SetParent(planet); // child item to the planet
-            //items[i] = item;
-        }
-        //lastPickup = CreatePickup();
+        //items = new GameObject[qntItems];
+        //// populate planet
+        //for (var i = 0; i < qntItems; i++)
+        //{
+        //    // create a random item
+        //    GameObject item = Instantiate(prefabs[Random.Range(0, prefabs.Length)]);
+        //    MoveItem(item, Random.Range(bornAngle, killAngle)); // move it to a random position
+        //    item.transform.SetParent(planet); // child item to the planet
+        //    item.transform.up = Vector3.forward;
+        //    item.transform.position = planet.position + Vector3.forward * (radius + playerHeight);
+        //    item.transform.RotateAround(planet.position, Vector3.up, laneAngles[Random.Range(0, laneAngles.Length)]);
+
+        //    items[i] = item;
+        //}
+        lastGratable = CreateGratable();
     }
 
     void Update()
@@ -75,10 +82,10 @@ public class Player : MonoBehaviour
         //        MoveItem(items[i], bornAngle);
         //    }
         //}
-        //if (Vector3.Angle(lastPickup.transform.up, Vector3.forward) > pickupAngle)
-        //{
-        //    lastPickup = CreatePickup();
-        //}
+        if (Vector3.Angle(lastGratable.transform.up, Vector3.forward) > gratableAngle)
+        {
+            lastGratable = CreateGratable();
+        }
 
         // Check for and handle lane changes
         float hAxis = Input.GetAxis("Horizontal");
@@ -149,12 +156,28 @@ public class Player : MonoBehaviour
         rndr.material.color = rndColor;
     }
 
-    GameObject CreatePickup()
-    { // create pickup in front of the planet
-        GameObject pickup = Instantiate(pickupPrefabs[Random.Range(0, pickupPrefabs.Length)]);
-        pickup.transform.SetParent(planet);
-        pickup.transform.up = Vector3.forward;
-        pickup.transform.position = planet.position + Vector3.forward * (radius + pickupHeight);
-        return pickup;
+    GameObject CreateGratable()
+    { // Create a new gratable object in front of the planet
+        GameObject gratable = Instantiate(gratablePrefabs[Random.Range(0, gratablePrefabs.Length)]);
+        gratable.transform.SetParent(planet);
+        gratable.transform.up = Vector3.forward;
+        gratable.transform.position = planet.position + Vector3.forward * (radius + playerHeight);
+        gratable.transform.RotateAround(planet.position, Vector3.up, 120 * laneAngles[Random.Range(0, laneAngles.Length)]);
+        return gratable;
+    }
+
+    void OnTriggerEnter(Collider objectHit)
+    {
+        Debug.Log("Collision");
+        GratableObject objectQualities = objectHit.GetComponent<GratableObject>();
+        if (objectQualities != null)
+        {
+            Debug.Log("And its slowdown value is " + objectQualities.slowdownOnHit);
+            currentVelocity = currentVelocity - objectQualities.slowdownOnHit;
+            if (currentVelocity < minVelocity)
+            {
+                currentVelocity = minVelocity;
+            }
+        }
     }
 }
