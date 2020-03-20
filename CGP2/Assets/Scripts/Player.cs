@@ -39,8 +39,11 @@ public class Player : MonoBehaviour
     public float topRange;
     public float botRange;
 
-    public int timeInterval;
-    int localTimeFrame;
+    public int distanceToGate;
+    [System.NonSerialized]
+    public int localDistanceToGate;
+    [System.NonSerialized]
+    public float completedDistance;
 
     void Start()
     {
@@ -53,14 +56,16 @@ public class Player : MonoBehaviour
 
         // Set default display and time for the first gate
         speedDisplay.MapToRange(botRange, topRange);
-        localTimeFrame = timeInterval;
+        localDistanceToGate = distanceToGate;
         speedDisplay.SetRange();
+        completedDistance = 0;
     }
 
     void Update()
     {
-        // Rotate planet according to player's velocity
-        planet.transform.Rotate(-currentVelocity * Time.deltaTime, 0, 0); // rotate planet
+        // Rotate planet according to player's velocity and mark the amount of distance completed
+        planet.transform.Rotate(-currentVelocity * Time.deltaTime, 0, 0);
+        completedDistance += currentVelocity * Time.deltaTime;
         //animation.CrossFade("walk"); // play "walk" animation
         //animation.CrossFade("idle"); // else play "idle"
 
@@ -128,11 +133,11 @@ public class Player : MonoBehaviour
     {
         speedDisplay.DisplayCurrentSpeed(currentVelocity, minVelocity, maxVelocity);
 
-        // multiplier of 8 is used to check if the localTimeFrame has been multiplied more than 3 times
-        if (timeInterval * 8 == localTimeFrame)
+        // multiplier of 8 is used to check if the localDistanceToGate has been multiplied more than 3 times
+        if (distanceToGate * 8 == localDistanceToGate)
             Debug.Log("VICTORY"); // place a boolean here or call function to end game
-        // checks if current localTimeFrame is equal to the current time 
-        else if ((int)Time.time == localTimeFrame)
+        // checks if current localDistanceToGate is equal to the current time 
+        else if (completedDistance >= localDistanceToGate)
         {
             // checks if the current speed of the player (ascertained from the slider value) 
             // is within the top and bottom ranges.  If so, player has met the threshold for the next level
@@ -148,8 +153,9 @@ public class Player : MonoBehaviour
                 // Changes the bars to match the new positions
                 speedDisplay.SetRange();
 
-                // double the previous localTimeFrame value
-                localTimeFrame *= 2;
+                // Reset completed distance and double the previous localDistanceToGate value
+                completedDistance = 0;
+                localDistanceToGate *= 2;
             }
             else // if the current speed is NOT within range, player loses
                 Debug.Log("DEFEAT"); // bool or function to signify end of game

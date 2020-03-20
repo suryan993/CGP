@@ -25,7 +25,7 @@ public class SpeedInfo : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        // set the slider to tthe component part
+        // set the slider to the component part
         slider = GetComponent<Slider>();
 
         // set the range values to their defaults

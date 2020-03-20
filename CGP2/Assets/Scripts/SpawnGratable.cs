@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class SpawnGratable : MonoBehaviour
 {
-    // prefabs for obstacles
+    // Prefabs for obstacles that slow down the player when hit
     public GameObject[] gratablePrefabs;
-    //transform of the planet object
+    // Transform of the planet object
     Transform planet;
 
     // values for determining position and movement of objects
@@ -30,7 +30,7 @@ public class SpawnGratable : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // chaecks the angle based on the last obstacle and checks if it is greater than
+        // checks the angle based on the last obstacle and checks if it is greater than
         // the designated gratable angle.  If it is, spawn a new obstacle
         if (Vector3.Angle(lastGratable.transform.up, Vector3.forward) > gratableAngle)
         {
