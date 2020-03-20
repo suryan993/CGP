@@ -225,10 +225,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   slider: {fileID: 0}
-  topRange: {fileID: 827495067}
-  bottomRange: {fileID: 866852546}
   topRangeValue: 0
   bottomRangeValue: 0
+  topRange: {fileID: 827495067}
+  bottomRange: {fileID: 866852546}
 --- !u!1 &239797962
 GameObject:
   m_ObjectHideFlags: 0
@@ -1312,12 +1312,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   planet: {fileID: 2054448039}
   speedDisplay: {fileID: 210606996}
-  prefabs:
-  - {fileID: 4459898690151863872, guid: e1d809bd8179946f4a16bc5fad816072, type: 3}
   gratablePrefabs:
   - {fileID: 4459898690151863872, guid: e1d809bd8179946f4a16bc5fad816072, type: 3}
   topRange: 0.6
   botRange: 0.3
+  timeInterval: 15
 --- !u!1 &1343052905
 GameObject:
   m_ObjectHideFlags: 0
