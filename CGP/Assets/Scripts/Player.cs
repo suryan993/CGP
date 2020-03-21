@@ -38,12 +38,19 @@ public class Player : MonoBehaviour
     // values used for determining range and time used by the gates
     public float topRange;
     public float botRange;
+    float requiredRangeDif = 0.3f;
+    float oldTopRange;
 
     public int distanceToGate;
     [System.NonSerialized]
     public int localDistanceToGate;
     [System.NonSerialized]
     public float completedDistance;
+    int minRandDistance = 180;
+    int maxRandDistance = 360;
+
+    // How well the player has done
+    int completedLevels;
 
     void Start()
     {
@@ -54,11 +61,12 @@ public class Player : MonoBehaviour
         overallAcceleration = 2; // Different conditions can have different default acceleration
         currentVelocity = minVelocity;
 
-        // Set default display and time for the first gate
+        // Set default display and get the distance for the first gate from the UI
         speedDisplay.MapToRange(botRange, topRange);
-        localDistanceToGate = distanceToGate;
+        localDistanceToGate = distanceToGate; // This should be larger then 90 at least
         speedDisplay.SetRange();
         completedDistance = 0;
+        completedLevels = 0;
     }
 
     void Update()
@@ -121,30 +129,22 @@ public class Player : MonoBehaviour
         }
     }
 
-    // Increases the range for the gate
-    void ManipulateRange()
-    {
-        topRange += .2f;
-        botRange += .2f;
-    }
-
     // Handles logic determining whether to change gates or end the game
     void HandleGates()
     {
         speedDisplay.DisplayCurrentSpeed(currentVelocity, minVelocity, maxVelocity);
 
-        // multiplier of 8 is used to check if the localDistanceToGate has been multiplied more than 3 times
-        if (distanceToGate * 8 == localDistanceToGate)
-            Debug.Log("VICTORY"); // place a boolean here or call function to end game
-        // checks if current localDistanceToGate is equal to the current time 
-        else if (completedDistance >= localDistanceToGate)
+        // checks if current localDistanceToGate is equal to the current distance 
+        if (completedDistance >= localDistanceToGate)
         {
             // checks if the current speed of the player (ascertained from the slider value) 
             // is within the top and bottom ranges.  If so, player has met the threshold for the next level
             if (speedDisplay.slider.value > botRange && speedDisplay.slider.value < topRange)
             {
-                // increase the range values for the next level
-                ManipulateRange();
+                completedLevels++;
+
+                // Update the limits on speed values for the next level
+                ManipulateRangeForNewLevel();
 
                 // map the range from the slider values to the height of the slider
                 // this is used to properly position the bars along the slider to match the new range
@@ -153,9 +153,9 @@ public class Player : MonoBehaviour
                 // Changes the bars to match the new positions
                 speedDisplay.SetRange();
 
-                // Reset completed distance and double the previous localDistanceToGate value
+                // Reset completedDistance and update localDistanceToGate for the next level
                 completedDistance = 0;
-                localDistanceToGate *= 2;
+                ManipulateDistanceForNewLevel();
             }
             else // if the current speed is NOT within range, player loses
             {
@@ -163,6 +163,30 @@ public class Player : MonoBehaviour
                 SceneManager.LoadScene("GameOver");
             }
         }
+    }
+
+    // Increases the range for the gate
+    void ManipulateRangeForNewLevel()
+    {
+        // Store the completed level's value for subsequent distance code, to maintain fairness
+        oldTopRange = topRange;
+
+        botRange = Random.Range(0.0f, 1.0f - requiredRangeDif);
+        topRange = botRange + requiredRangeDif;
+    }
+
+    // Increases the range for the gate
+    void ManipulateDistanceForNewLevel()
+    {
+        localDistanceToGate = (int)Random.Range(minRandDistance, maxRandDistance);
+
+        // If the player must accelerate, give even more distance to complete the level
+        if (topRange > oldTopRange)
+        {
+            localDistanceToGate = (int)(localDistanceToGate * topRange / oldTopRange);
+        }
+
+        Debug.Log("Distance to next gate: " + localDistanceToGate);
     }
 
     // Move item to a random position in the grass, at elevation angleX
