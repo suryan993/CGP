@@ -7,12 +7,12 @@ public class Player : MonoBehaviour
 {
     public Transform planet; // drag the planet here
     Transform playerRotationCore; // allows the player to tilt around the surface of the planet
-    float radius = 25; // planet radius
+    //float radius = 25; // planet radius
     float currentVelocity; // player speed - degrees per second
     float overallAcceleration;
-    float minVelocity = 6;
+    float minVelocity = 5;
     float maxVelocity = 50;
-    public Slider speedDisplay;
+    public SpeedInfo speedDisplay;
     float[] laneAngles = { 0.02f, 0.01f, 0.0f, -0.01f, -0.02f }; // z values for where to rotate to be in each lane
     int leftmostLane; // array index to show how far the player is allowed to move at present
     int rightmostLane; // all these ints are array indices
@@ -21,19 +21,29 @@ public class Player : MonoBehaviour
     bool isChangingLeft = false;
     bool isChangingRight = false;
     float laneChangeVel = 6; // player speed in z rotating around the playerRotationCore
-    public GameObject[] prefabs; // drag the item prefabs here
-    int qntItems = 30; // how many items populate the scene
-    float bornAngle = 0; // items born at this X angle
-    float killAngle = 90; // items disappear after this angle
-    float pathAngle = 10; // path angle from vertical
-    float grassAngle = 45; // end of grass angle from vertical
+    //public GameObject[] prefabs; // drag the item prefabs here
+    //int qntItems = 30; // how many items populate the scene
+    //float bornAngle = 0; // items born at this X angle
+    //float killAngle = 90; // items disappear after this angle
+    //float pathAngle = 10; // path angle from vertical
+    //float grassAngle = 45; // end of grass angle from vertical
     public GameObject[] gratablePrefabs; // drag the gratable prefabs here
-    float gratableAngle = 7; // degrees between gratable objects
-    float playerHeight = 0.25f; // general height above ground where the player can be found
-    GameObject lastGratable; // last gratable object created
+    //float gratableAngle = 7; // degrees between gratable objects
+    //float playerHeight = 0.25f; // general height above ground where the player can be found
+    //GameObject lastGratable; // last gratable object created
 
     [System.NonSerialized]
     public GameObject[] items;
+
+    // values used for determining range and time used by the gates
+    public float topRange;
+    public float botRange;
+
+    public int distanceToGate;
+    [System.NonSerialized]
+    public int localDistanceToGate;
+    [System.NonSerialized]
+    public float completedDistance;
 
     void Start()
     {
@@ -44,27 +54,18 @@ public class Player : MonoBehaviour
         overallAcceleration = 2; // Different conditions can have different default acceleration
         currentVelocity = minVelocity;
 
-        //items = new GameObject[qntItems];
-        //// populate planet
-        //for (var i = 0; i < qntItems; i++)
-        //{
-        //    // create a random item
-        //    GameObject item = Instantiate(prefabs[Random.Range(0, prefabs.Length)]);
-        //    MoveItem(item, Random.Range(bornAngle, killAngle)); // move it to a random position
-        //    item.transform.SetParent(planet); // child item to the planet
-        //    item.transform.up = Vector3.forward;
-        //    item.transform.position = planet.position + Vector3.forward * (radius + playerHeight);
-        //    item.transform.RotateAround(planet.position, Vector3.up, laneAngles[Random.Range(0, laneAngles.Length)]);
-
-        //    items[i] = item;
-        //}
-        lastGratable = CreateGratable();
+        // Set default display and time for the first gate
+        speedDisplay.MapToRange(botRange, topRange);
+        localDistanceToGate = distanceToGate;
+        speedDisplay.SetRange();
+        completedDistance = 0;
     }
 
     void Update()
     {
-        // Rotate planet according to player's velocity
-        planet.transform.Rotate(-currentVelocity * Time.deltaTime, 0, 0); // rotate planet
+        // Rotate planet according to player's velocity and mark the amount of distance completed
+        planet.transform.Rotate(-currentVelocity * Time.deltaTime, 0, 0);
+        completedDistance += currentVelocity * Time.deltaTime;
         //animation.CrossFade("walk"); // play "walk" animation
         //animation.CrossFade("idle"); // else play "idle"
 
@@ -75,22 +76,8 @@ public class Player : MonoBehaviour
             currentVelocity = maxVelocity;
         }
 
-        // Display current velocity
-        speedDisplay.value = (float) (currentVelocity - minVelocity) / maxVelocity;
-
-        //for (var i = 0; i < qntItems; i++)
-        //{
-        //    // if item passed the kill angle from Z axis...
-        //    if (Vector3.Angle(items[i].transform.up, Vector3.forward) > killAngle)
-        //    {
-        //        // replant it at the born angle, at random position
-        //        MoveItem(items[i], bornAngle);
-        //    }
-        //}
-        if (Vector3.Angle(lastGratable.transform.up, Vector3.forward) > gratableAngle)
-        {
-            lastGratable = CreateGratable();
-        }
+        // Checks and changes the gates
+        HandleGates();
 
         // Check for and handle lane changes
         float hAxis = Input.GetAxis("Horizontal");
@@ -134,41 +121,72 @@ public class Player : MonoBehaviour
         }
     }
 
+    // Increases the range for the gate
+    void ManipulateRange()
+    {
+        topRange += .2f;
+        botRange += .2f;
+    }
+
+    // Handles logic determining whether to change gates or end the game
+    void HandleGates()
+    {
+        speedDisplay.DisplayCurrentSpeed(currentVelocity, minVelocity, maxVelocity);
+
+        // multiplier of 8 is used to check if the localDistanceToGate has been multiplied more than 3 times
+        if (distanceToGate * 8 == localDistanceToGate)
+            Debug.Log("VICTORY"); // place a boolean here or call function to end game
+        // checks if current localDistanceToGate is equal to the current time 
+        else if (completedDistance >= localDistanceToGate)
+        {
+            // checks if the current speed of the player (ascertained from the slider value) 
+            // is within the top and bottom ranges.  If so, player has met the threshold for the next level
+            if (speedDisplay.slider.value > botRange && speedDisplay.slider.value < topRange)
+            {
+                // increase the range values for the next level
+                ManipulateRange();
+
+                // map the range from the slider values to the height of the slider
+                // this is used to properly position the bars along the slider to match the new range
+                speedDisplay.MapToRange(botRange, topRange);
+
+                // Changes the bars to match the new positions
+                speedDisplay.SetRange();
+
+                // Reset completed distance and double the previous localDistanceToGate value
+                completedDistance = 0;
+                localDistanceToGate *= 2;
+            }
+            else // if the current speed is NOT within range, player loses
+                Debug.Log("DEFEAT"); // bool or function to signify end of game
+        }
+    }
+
     // Move item to a random position in the grass, at elevation angleX
     void MoveItem(GameObject item, float angleX)
     {
-        float angleY;
-        if (Random.value < 0.5)
-        { // randomly select left or right sides
-            angleY = Random.Range(-grassAngle, -pathAngle);
-        }
-        else
-        {
-            angleY = Random.Range(pathAngle, grassAngle);
-        }
-        // calculate new item up direction
-        var dir = Quaternion.Euler(0, angleY, 0) * Vector3.forward;
-        dir = Quaternion.Euler(-angleX, 0, 0) * dir;
-        // set item position and rotation
-        item.transform.position = planet.transform.position + radius * dir;
-        item.transform.rotation = Quaternion.FromToRotation(Vector3.up, dir);
-        // set random size and rotation about Y 
-        item.transform.Rotate(0, Random.Range(0, 360), 0);
-        item.transform.localScale = Random.Range(0.4f, 1.5f) * Vector3.one;
-        // set a random color
-        Vector4 rndColor = Random.insideUnitSphere;
-        Renderer rndr = item.GetComponentInChildren<Renderer>();
-        rndr.material.color = rndColor;
-    }
-
-    GameObject CreateGratable()
-    { // Create a new gratable object in front of the planet
-        GameObject gratable = Instantiate(gratablePrefabs[Random.Range(0, gratablePrefabs.Length)]);
-        gratable.transform.SetParent(planet);
-        gratable.transform.up = Vector3.forward;
-        gratable.transform.position = planet.position + Vector3.forward * (radius + playerHeight);
-        gratable.transform.RotateAround(planet.position, Vector3.up, 120 * laneAngles[Random.Range(0, laneAngles.Length)]);
-        return gratable;
+        //float angleY;
+        //if (Random.value < 0.5)
+        //{ // randomly select left or right sides
+        //    angleY = Random.Range(-grassAngle, -pathAngle);
+        //}
+        //else
+        //{
+        //    angleY = Random.Range(pathAngle, grassAngle);
+        //}
+        //// calculate new item up direction
+        //var dir = Quaternion.Euler(0, angleY, 0) * Vector3.forward;
+        //dir = Quaternion.Euler(-angleX, 0, 0) * dir;
+        //// set item position and rotation
+        //item.transform.position = planet.transform.position + radius * dir;
+        //item.transform.rotation = Quaternion.FromToRotation(Vector3.up, dir);
+        //// set random size and rotation about Y 
+        //item.transform.Rotate(0, Random.Range(0, 360), 0);
+        //item.transform.localScale = Random.Range(0.4f, 1.5f) * Vector3.one;
+        //// set a random color
+        //Vector4 rndColor = Random.insideUnitSphere;
+        //Renderer rndr = item.GetComponentInChildren<Renderer>();
+        //rndr.material.color = rndColor;
     }
 
     void OnTriggerEnter(Collider objectHit)
