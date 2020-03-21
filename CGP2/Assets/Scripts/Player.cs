@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
+using UnityEngine.SceneManagement;
 public class Player : MonoBehaviour
 {
     public Transform planet; // drag the planet here
@@ -158,7 +158,10 @@ public class Player : MonoBehaviour
                 localDistanceToGate *= 2;
             }
             else // if the current speed is NOT within range, player loses
+            {
                 Debug.Log("DEFEAT"); // bool or function to signify end of game
+                SceneManager.LoadScene("GameOver");
+            }
         }
     }
 
