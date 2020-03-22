@@ -111,7 +111,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   slowdownOnHit: 5
   spinSpeed: 360
-  deathParticles: {fileID: 4719863158834734513, guid: abd9958e52fcc1d49a245396458ff1a7,
+  deathParticles: {fileID: 8633000369143368435, guid: abd9958e52fcc1d49a245396458ff1a7,
     type: 3}
 --- !u!114 &8199268202208624706
 MonoBehaviour:

@@ -22,7 +22,7 @@ public class GratableObject : MonoBehaviour
     public void EmitParticlesAndDestroy(Transform planet)
     {
         ParticleSystem particles = Instantiate(deathParticles, transform.position, Quaternion.identity);
-        particles.transform.SetParent(planet);
+        //particles.transform.SetParent(planet);
         Destroy(gameObject);
     }
 }
