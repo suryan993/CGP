@@ -10,7 +10,6 @@ public class SpawnGate : MonoBehaviour
     Transform planet;
     // The player, which holds the information about the distance to gates
     public Player runningPlayer;
-
     // Values for determining creation and position of a new gate
     bool thereIsAGate;
     float radius = 25;

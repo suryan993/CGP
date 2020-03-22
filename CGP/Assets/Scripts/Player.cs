@@ -31,6 +31,10 @@ public class Player : MonoBehaviour
     //float gratableAngle = 7; // degrees between gratable objects
     //float playerHeight = 0.25f; // general height above ground where the player can be found
     //GameObject lastGratable; // last gratable object created
+    public Text distanceText;
+    public float displayDistance;
+
+    public Text speedText;
 
     [System.NonSerialized]
     public GameObject[] items;
@@ -64,6 +68,7 @@ public class Player : MonoBehaviour
         // Set default display and get the distance for the first gate from the UI
         speedDisplay.MapToRange(botRange, topRange);
         localDistanceToGate = distanceToGate; // This should be larger then 90 at least
+        displayDistance = localDistanceToGate;
         speedDisplay.SetRange();
         completedDistance = 0;
         completedLevels = 0;
@@ -71,6 +76,9 @@ public class Player : MonoBehaviour
 
     void Update()
     {
+        displayDistance = (displayDistance - (currentVelocity * Time.deltaTime));
+        distanceText.text = ((int)displayDistance).ToString();
+        speedText.text = ((int)currentVelocity).ToString();
         // Rotate planet according to player's velocity and mark the amount of distance completed
         planet.transform.Rotate(-currentVelocity * Time.deltaTime, 0, 0);
         completedDistance += currentVelocity * Time.deltaTime;
@@ -185,7 +193,7 @@ public class Player : MonoBehaviour
         {
             localDistanceToGate = (int)(localDistanceToGate * topRange / oldTopRange);
         }
-
+        displayDistance = localDistanceToGate;
         Debug.Log("Distance to next gate: " + localDistanceToGate);
     }
 
@@ -227,5 +235,6 @@ public class Player : MonoBehaviour
                 currentVelocity = minVelocity;
             }
         }
+        objectQualities.EmitParticlesAndDestroy(planet);
     }
 }
