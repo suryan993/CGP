@@ -11,4 +11,14 @@ public class Restart : MonoBehaviour
         SceneManager.LoadScene("SampleScene");
     }
 
+    public void StartGame()
+    {
+        SceneManager.LoadScene("SampleScene");
+    }
+
+    public void QuitGame()
+    {
+        Application.Quit();
+    }
+
 }
