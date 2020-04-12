@@ -9,6 +9,8 @@ public class SpawnGratable : MonoBehaviour
     // Transform of the planet object
     Transform planet;
 
+    bool spawnPickups = true;
+
     // values for determining position and movement of objects
     float radius = 25;
     float playerHeight = 0.25f;
@@ -32,9 +34,12 @@ public class SpawnGratable : MonoBehaviour
     {
         // checks the angle based on the last obstacle and checks if it is greater than
         // the designated gratable angle.  If it is, spawn a new obstacle
-        if (Vector3.Angle(lastGratable.transform.up, Vector3.forward) > gratableAngle)
+        if (spawnPickups)
         {
-            lastGratable = CreateGratable();
+            if (lastGratable == null || Vector3.Angle(lastGratable.transform.up, Vector3.forward) > gratableAngle)
+            {
+                lastGratable = CreateGratable();
+            }
         }
     }
 
@@ -43,10 +48,31 @@ public class SpawnGratable : MonoBehaviour
     { 
         // Create a new gratable object in front of the planet
         GameObject gratable = Instantiate(gratablePrefabs[Random.Range(0, gratablePrefabs.Length)]);
+        gratable.tag = "Gratable";
         gratable.transform.SetParent(planet);
         gratable.transform.up = Vector3.forward;
         gratable.transform.position = planet.position + Vector3.forward * (radius + playerHeight);
         gratable.transform.RotateAround(planet.position, Vector3.up, 120 * laneAngles[Random.Range(0, laneAngles.Length)]);
         return gratable;
+    }
+
+    public void ToggleSpawnPickups()
+    {
+        if (spawnPickups)
+        {
+            spawnPickups = false;
+        } else
+        {
+            spawnPickups = true;
+        }
+    }
+
+    public void DestroyAllGratables()
+    {
+        GameObject[] allGratables = GameObject.FindGameObjectsWithTag("Gratable");
+        foreach(GameObject gratable in allGratables)
+        {
+            Destroy(gratable);
+        }
     }
 }

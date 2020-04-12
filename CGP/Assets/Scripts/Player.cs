@@ -21,6 +21,8 @@ public class Player : MonoBehaviour
     bool isChangingLeft = false;
     bool isChangingRight = false;
     float laneChangeVel = 6; // player speed in z rotating around the playerRotationCore
+    float pickupDelay = 0f;
+    bool togglePickups = false;
     //public GameObject[] prefabs; // drag the item prefabs here
     //int qntItems = 30; // how many items populate the scene
     //float bornAngle = 0; // items born at this X angle
@@ -76,6 +78,19 @@ public class Player : MonoBehaviour
 
     void Update()
     {
+        if (togglePickups)
+        {
+            if(pickupDelay < 0)
+            {
+                ToggleSpawnPickups();
+                togglePickups = false;
+
+            }
+            else
+            {
+                pickupDelay -= Time.deltaTime;
+            }
+        }
         displayDistance = (displayDistance - (currentVelocity * Time.deltaTime));
         distanceText.text = ((int)displayDistance).ToString();
         speedText.text = ((int)currentVelocity).ToString();
@@ -164,6 +179,10 @@ public class Player : MonoBehaviour
                 // Reset completedDistance and update localDistanceToGate for the next level
                 completedDistance = 0;
                 ManipulateDistanceForNewLevel();
+                ToggleSpawnPickups();
+                pickupDelay = 1.0f; //Timer to disable pickups
+                togglePickups = true;
+                DestroyAllGratables();
             }
             else // if the current speed is NOT within range, player loses
             {
@@ -236,5 +255,18 @@ public class Player : MonoBehaviour
             }
         }
         objectQualities.EmitParticlesAndDestroy(planet);
+    }
+
+    public void ToggleSpawnPickups()
+    {
+        Debug.Log("Spawn Toggled");
+        SpawnGratable script = (SpawnGratable)GameObject.Find("Planet").GetComponent<SpawnGratable>();
+        script.ToggleSpawnPickups();
+    }
+
+    public void DestroyAllGratables()
+    {
+        SpawnGratable script = (SpawnGratable)GameObject.Find("Planet").GetComponent<SpawnGratable>();
+        script.DestroyAllGratables();
     }
 }
