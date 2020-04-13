@@ -90,7 +90,7 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        Debug.Log("Key Buffer Count " + keyBuffer.Count);
+        //Debug.Log("Key Buffer Count " + keyBuffer.Count);
         if (togglePickups)
         {
             if(pickupDelay < 0)
@@ -247,11 +247,15 @@ public class Player : MonoBehaviour
             // is within the top and bottom ranges.  If so, player has met the threshold for the next level
             if ((speedDisplay.slider.value > botRange && speedDisplay.slider.value < topRange) || gateChecked)
             {
+                Debug.Log(topRange);
+                Debug.Log(speedDisplay.slider.value);
+                Debug.Log(botRange);
+               
                 points += config_points_gates;
                 completedLevels++;
                 overallAcceleration = overallAcceleration + (.1f * completedLevels);
-                maxVelocity += 1f;
-                minVelocity += 1f;
+                maxVelocity += (.5f * completedLevels);
+                minVelocity += (.5f * completedLevels);
                 // Update the limits on speed values for the next level
                 ManipulateRangeForNewLevel();
 
@@ -307,7 +311,7 @@ public class Player : MonoBehaviour
         // Store the completed level's value for subsequent distance code, to maintain fairness
         oldTopRange = topRange;
 
-        botRange = Random.Range(0.0f, 1.0f - requiredRangeDif + (.1f * completedLevels));
+        botRange = Random.Range(0.0f, 1.0f - requiredRangeDif);
         topRange = botRange + requiredRangeDif;
     }
 
