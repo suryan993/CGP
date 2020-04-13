@@ -23,6 +23,8 @@ public class Player : MonoBehaviour
     float laneChangeVel = 6; // player speed in z rotating around the playerRotationCore
     float pickupDelay = 0f;
     bool togglePickups = false;
+    public int lives = 3;
+    bool gateChecked = false;
     //public GameObject[] prefabs; // drag the item prefabs here
     //int qntItems = 30; // how many items populate the scene
     //float bornAngle = 0; // items born at this X angle
@@ -35,8 +37,14 @@ public class Player : MonoBehaviour
     //GameObject lastGratable; // last gratable object created
     public Text distanceText;
     public float displayDistance;
-
     public Text speedText;
+
+    public float points = 0;
+    public Text pointsText;
+
+    public int config_points_cheese = 10;
+    public int config_points_gates = 100;
+    public int config_points_distance = 1;
 
     [System.NonSerialized]
     public GameObject[] items;
@@ -91,9 +99,15 @@ public class Player : MonoBehaviour
                 pickupDelay -= Time.deltaTime;
             }
         }
+        //Display distance and speed
         displayDistance = (displayDistance - (currentVelocity * Time.deltaTime));
         distanceText.text = ((int)displayDistance).ToString();
         speedText.text = ((int)currentVelocity).ToString();
+
+        //Add points and display
+        points += Time.deltaTime * currentVelocity * config_points_distance;
+        pointsText.text = ((int)points).ToString();
+
         // Rotate planet according to player's velocity and mark the amount of distance completed
         planet.transform.Rotate(-currentVelocity * Time.deltaTime, 0, 0);
         completedDistance += currentVelocity * Time.deltaTime;
@@ -163,8 +177,9 @@ public class Player : MonoBehaviour
         {
             // checks if the current speed of the player (ascertained from the slider value) 
             // is within the top and bottom ranges.  If so, player has met the threshold for the next level
-            if (speedDisplay.slider.value > botRange && speedDisplay.slider.value < topRange)
+            if ((speedDisplay.slider.value > botRange && speedDisplay.slider.value < topRange) || gateChecked)
             {
+                points += config_points_gates;
                 completedLevels++;
                 overallAcceleration = overallAcceleration + (.1f * completedLevels);
                 maxVelocity += 1f;
@@ -186,11 +201,18 @@ public class Player : MonoBehaviour
                 pickupDelay = 1.0f; //Timer to disable pickups
                 togglePickups = true;
                 DestroyAllGratables();
+                gateChecked = false;
             }
             else // if the current speed is NOT within range, player loses
             {
-                Debug.Log("DEFEAT"); // bool or function to signify end of game
-                SceneManager.LoadScene("GameOver");
+                gateChecked = true;
+                lives--;
+                Debug.Log("Lives : " + lives);
+                if (lives <= 0)
+                {
+                    Debug.Log("DEFEAT"); // bool or function to signify end of game
+                    SceneManager.LoadScene("GameOver");
+                }
             }
         }
     }
@@ -251,6 +273,7 @@ public class Player : MonoBehaviour
         GratableObject objectQualities = objectHit.GetComponent<GratableObject>();
         if (objectQualities != null)
         {
+            points += config_points_cheese;
             currentVelocity = currentVelocity - objectQualities.slowdownOnHit;
             if (currentVelocity < minVelocity)
             {
