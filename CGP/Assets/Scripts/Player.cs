@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 public class Player : MonoBehaviour
 {
+    public AudioSource CHEESE;
     public Transform planet; // drag the planet here
     Transform playerRotationCore; // allows the player to tilt around the surface of the planet
     //float radius = 25; // planet radius
@@ -358,6 +359,7 @@ public class Player : MonoBehaviour
 
     void OnTriggerEnter(Collider objectHit)
     {
+        CHEESE.Play();
         GratableObject objectQualities = objectHit.GetComponent<GratableObject>();
         if (objectQualities != null)
         {
