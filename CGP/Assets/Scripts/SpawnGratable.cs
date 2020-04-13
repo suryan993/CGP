@@ -15,11 +15,12 @@ public class SpawnGratable : MonoBehaviour
     float radius = 25;
     float playerHeight = 0.25f;
     float[] laneAngles = { 0.02f, 0.01f, 0.0f, -0.01f, -0.02f };
-    float gratableAngle = 7;
+    float gratableAngle = 20;
 
     // the newest obstacle in the scene
     GameObject lastGratable;
 
+    int completedLevels;
 
     // Start is called before the first frame update
     void Start()
@@ -27,11 +28,15 @@ public class SpawnGratable : MonoBehaviour
         // sets planet transform and creates first obstacle
         planet = transform;
         lastGratable = CreateGratable();
+        completedLevels = GameObject.Find("Player").GetComponent<Player>().completedLevels;
     }
 
     // Update is called once per frame
     void Update()
     {
+        gratableAngle = gratableAngle - (.5f * completedLevels);
+        if (gratableAngle <= 3)
+            gratableAngle = 3;
         // checks the angle based on the last obstacle and checks if it is greater than
         // the designated gratable angle.  If it is, spawn a new obstacle
         if (spawnPickups)

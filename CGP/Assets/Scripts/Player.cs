@@ -52,11 +52,11 @@ public class Player : MonoBehaviour
     public int localDistanceToGate;
     [System.NonSerialized]
     public float completedDistance;
-    int minRandDistance = 180;
+    int minRandDistance = 140;
     int maxRandDistance = 360;
 
     // How well the player has done
-    int completedLevels;
+    public int completedLevels;
 
     void Start()
     {
@@ -64,7 +64,7 @@ public class Player : MonoBehaviour
         leftmostLane = 0; // The number of lanes can change depending on conditions during play
         rightmostLane = 4;
         currentLane = 2;
-        overallAcceleration = 2; // Different conditions can have different default acceleration
+        overallAcceleration = 1.5f; // Different conditions can have different default acceleration
         currentVelocity = minVelocity;
 
         // Set default display and get the distance for the first gate from the UI
@@ -101,6 +101,7 @@ public class Player : MonoBehaviour
         //animation.CrossFade("idle"); // else play "idle"
 
         // Accelerate regularly
+        
         currentVelocity = currentVelocity + overallAcceleration * Time.deltaTime;
         if (currentVelocity > maxVelocity)
         {
@@ -165,7 +166,9 @@ public class Player : MonoBehaviour
             if (speedDisplay.slider.value > botRange && speedDisplay.slider.value < topRange)
             {
                 completedLevels++;
-
+                overallAcceleration = overallAcceleration + (.1f * completedLevels);
+                maxVelocity += 1f;
+                minVelocity += 1f;
                 // Update the limits on speed values for the next level
                 ManipulateRangeForNewLevel();
 
@@ -198,7 +201,7 @@ public class Player : MonoBehaviour
         // Store the completed level's value for subsequent distance code, to maintain fairness
         oldTopRange = topRange;
 
-        botRange = Random.Range(0.0f, 1.0f - requiredRangeDif);
+        botRange = Random.Range(0.0f, 1.0f - requiredRangeDif + (.1f * completedLevels));
         topRange = botRange + requiredRangeDif;
     }
 
