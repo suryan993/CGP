@@ -2616,6 +2616,11 @@ PrefabInstance:
       propertyPath: pointsText
       value: 
       objectReference: {fileID: 1749454164}
+    - target: {fileID: 6345722995977184386, guid: fe244bbdcc98cec40aaa1d451223cc03,
+        type: 3}
+      propertyPath: config_key_buffer_count
+      value: 3
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fe244bbdcc98cec40aaa1d451223cc03, type: 3}
 --- !u!4 &3231363467879697400 stripped

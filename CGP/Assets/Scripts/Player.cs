@@ -63,6 +63,9 @@ public class Player : MonoBehaviour
     int minRandDistance = 140;
     int maxRandDistance = 360;
 
+    Queue<int> keyBuffer;
+    public int config_key_buffer_count = 3;
+
     // How well the player has done
     public int completedLevels;
 
@@ -82,10 +85,12 @@ public class Player : MonoBehaviour
         speedDisplay.SetRange();
         completedDistance = 0;
         completedLevels = 0;
+        keyBuffer = new Queue<int>();
     }
 
     void Update()
     {
+        Debug.Log("Key Buffer Count " + keyBuffer.Count);
         if (togglePickups)
         {
             if(pickupDelay < 0)
@@ -126,18 +131,41 @@ public class Player : MonoBehaviour
         HandleGates();
 
         // Check for and handle lane changes
-        float hAxis = Input.GetAxis("Horizontal");
-        if (!isChangingLeft && !isChangingRight)
+
+        if (Input.GetKeyDown(KeyCode.LeftArrow)){
+            queueKeyDownLeft();
+        }
+
+        if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            if (hAxis < -0.1 && currentLane > leftmostLane)
+            queueKeyDownRight();
+        }
+
+        if (!isChangingLeft && !isChangingRight && keyBuffer.Count > 0)
+        {
+            if (keyBuffer.Peek() == -1)
             {
-                destinationLane = currentLane - 1;
-                isChangingLeft = true;
+                if (currentLane > leftmostLane)
+                {
+                    keyBuffer.Dequeue();
+                    destinationLane = currentLane - 1;
+                    isChangingLeft = true;
+                } else
+                {
+                    keyBuffer.Dequeue();
+                }
             }
-            else if (hAxis > 0.1 && currentLane < rightmostLane)
+            else if (keyBuffer.Peek() == 1)
             {
-                destinationLane = currentLane + 1;
-                isChangingRight = true;
+                if (currentLane < rightmostLane)
+                {
+                    keyBuffer.Dequeue();
+                    destinationLane = currentLane + 1;
+                    isChangingRight = true;
+                } else
+                {
+                    keyBuffer.Dequeue();
+                }
             }
 
         }
@@ -165,6 +193,46 @@ public class Player : MonoBehaviour
                 playerRotationCore.Rotate(0, 0, -laneChangeVel * Time.deltaTime);
             }
         }
+
+        /*        float hAxis = Input.GetAxis("Horizontal"); //Old Input Handling
+                if (!isChangingLeft && !isChangingRight)
+                {
+                    if (hAxis < -0.1 && currentLane > leftmostLane)
+                    {
+                        destinationLane = currentLane - 1;
+                        isChangingLeft = true;
+                    }
+                    else if (hAxis > 0.1 && currentLane < rightmostLane)
+                    {
+                        destinationLane = currentLane + 1;
+                        isChangingRight = true;
+                    }
+
+                }
+                else if (isChangingLeft)
+                {
+                    if (playerRotationCore.rotation.z >= laneAngles[destinationLane])
+                    {
+                        currentLane = destinationLane;
+                        isChangingLeft = false;
+                    }
+                    else // Rotate player toward the new lane
+                    {
+                        playerRotationCore.Rotate(0, 0, laneChangeVel * Time.deltaTime);
+                    }
+                }
+                else if (isChangingRight)
+                {
+                    if (playerRotationCore.rotation.z <= laneAngles[destinationLane])
+                    {
+                        currentLane = destinationLane;
+                        isChangingRight = false;
+                    }
+                    else // Rotate player toward the new lane
+                    {
+                        playerRotationCore.Rotate(0, 0, -laneChangeVel * Time.deltaTime);
+                    }
+                }*/
     }
 
     // Handles logic determining whether to change gates or end the game
@@ -214,6 +282,22 @@ public class Player : MonoBehaviour
                     SceneManager.LoadScene("GameOver");
                 }
             }
+        }
+    }
+
+    void queueKeyDownLeft()
+    {
+        if(keyBuffer.Count <= config_key_buffer_count)
+        {
+            keyBuffer.Enqueue(-1);
+        }
+    }
+
+    void queueKeyDownRight()
+    {
+        if (keyBuffer.Count <= config_key_buffer_count)
+        {
+            keyBuffer.Enqueue(1);
         }
     }
 
