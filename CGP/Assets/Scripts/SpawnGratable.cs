@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class SpawnGratable : MonoBehaviour
 {
     // Prefabs for obstacles that slow down the player when hit
     public GameObject[] gratablePrefabs;
+    public GameObject[] pickUpPrefabs;
+    public float grateObjectProb;
     // Transform of the planet object
     Transform planet;
 
@@ -50,15 +53,26 @@ public class SpawnGratable : MonoBehaviour
 
     // creates a new obstacle
     GameObject CreateGratable()
-    { 
-        // Create a new gratable object in front of the planet
-        GameObject gratable = Instantiate(gratablePrefabs[Random.Range(0, gratablePrefabs.Length)]);
-        gratable.tag = "Gratable";
-        gratable.transform.SetParent(planet);
-        gratable.transform.up = Vector3.forward;
-        gratable.transform.position = planet.position + Vector3.forward * (radius + playerHeight);
-        gratable.transform.RotateAround(planet.position, Vector3.up, 120 * laneAngles[Random.Range(0, laneAngles.Length)]);
-        return gratable;
+    {
+        // Create a new spawnable object in front of the planet
+        float prob = Random.Range(0.0f, 1.0f);
+        GameObject spawnObj = null;
+        if(prob < grateObjectProb)
+        {
+            spawnObj = Instantiate(gratablePrefabs[Random.Range(0, gratablePrefabs.Length)]);
+            spawnObj.tag = "Gratable";
+        }   
+        else
+        {
+            spawnObj = Instantiate(pickUpPrefabs[Random.Range(0, pickUpPrefabs.Length)]);
+            spawnObj.tag = "PickUp";
+        }
+             
+        spawnObj.transform.SetParent(planet);
+        spawnObj.transform.up = Vector3.forward;
+        spawnObj.transform.position = planet.position + Vector3.forward * (radius + playerHeight);
+        spawnObj.transform.RotateAround(planet.position, Vector3.up, 120 * laneAngles[Random.Range(0, laneAngles.Length)]);
+        return spawnObj;
     }
 
     public void ToggleSpawnPickups()

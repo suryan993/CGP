@@ -13,6 +13,8 @@ public class Player : MonoBehaviour
     float overallAcceleration;
     float minVelocity = 5;
     float maxVelocity = 50;
+    float minAcceleration = 0.15f;
+    float maxAcceleration = 15f;
     public SpeedInfo speedDisplay;
     float[] laneAngles = { 0.02f, 0.01f, 0.0f, -0.01f, -0.02f }; // z values for where to rotate to be in each lane
     int leftmostLane; // array index to show how far the player is allowed to move at present
@@ -359,6 +361,15 @@ public class Player : MonoBehaviour
 
     void OnTriggerEnter(Collider objectHit)
     {
+        if (objectHit.CompareTag("Gratable"))
+            HandleGraterHit(objectHit);
+        else if (objectHit.CompareTag("PickUp"))
+            HandlePickUpHit(objectHit);
+
+    }
+
+    void HandleGraterHit(Collider objectHit)
+    {
         CHEESE.Play();
         GratableObject objectQualities = objectHit.GetComponent<GratableObject>();
         if (objectQualities != null)
@@ -371,6 +382,18 @@ public class Player : MonoBehaviour
             }
         }
         objectQualities.EmitParticlesAndDestroy(planet);
+    }
+
+    void HandlePickUpHit(Collider pickUpHit)
+    {
+        PowerUp powerUp = pickUpHit.GetComponent<PowerUp>();
+        if(powerUp != null)
+        {
+            overallAcceleration += powerUp.powerUpValue;
+            if (overallAcceleration < minAcceleration)
+                overallAcceleration = minAcceleration;
+        }
+        powerUp.EmitParticlesAndDestroy(planet);
     }
 
     public void ToggleSpawnPickups()

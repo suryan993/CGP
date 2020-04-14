@@ -2590,6 +2590,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gratablePrefabs:
   - {fileID: 7140689046107069181, guid: 4ae8f1857b0a5e9498a499255433a244, type: 3}
+  pickUpPrefabs:
+  - {fileID: 4447482776032531980, guid: a2fd8577f79b862488875e00ae3a09fa, type: 3}
+  - {fileID: 4447482776032531980, guid: 4d7a2c683938fc94a8d10577e186a44a, type: 3}
+  - {fileID: 4447482776032531980, guid: 46f1a294c640e6843bd04b47a774dea3, type: 3}
+  grateObjectProb: 0.8
 --- !u!114 &2054448041
 MonoBehaviour:
   m_ObjectHideFlags: 0
