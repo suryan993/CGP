@@ -10,7 +10,7 @@ public class GratableObject : MonoBehaviour
 
     void Start()
     {
-        
+        slowdownOnHit = 5 + GameObject.Find("Player").GetComponent<Player>().completedLevels;
     }
 
     void Update()
@@ -21,6 +21,7 @@ public class GratableObject : MonoBehaviour
 
     public void EmitParticlesAndDestroy(Transform planet)
     {
+        
         ParticleSystem particles = Instantiate(deathParticles, transform.position, Quaternion.identity);
         //particles.transform.SetParent(planet);
         Destroy(gameObject);

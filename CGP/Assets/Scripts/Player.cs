@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 public class Player : MonoBehaviour
 {
+    public AudioSource CHEESE;
     public Transform planet; // drag the planet here
     Transform playerRotationCore; // allows the player to tilt around the surface of the planet
     //float radius = 25; // planet radius
@@ -21,6 +22,10 @@ public class Player : MonoBehaviour
     bool isChangingLeft = false;
     bool isChangingRight = false;
     float laneChangeVel = 6; // player speed in z rotating around the playerRotationCore
+    float pickupDelay = 0f;
+    bool togglePickups = false;
+    public int lives = 3;
+    bool gateChecked = false;
     //public GameObject[] prefabs; // drag the item prefabs here
     //int qntItems = 30; // how many items populate the scene
     //float bornAngle = 0; // items born at this X angle
@@ -33,8 +38,14 @@ public class Player : MonoBehaviour
     //GameObject lastGratable; // last gratable object created
     public Text distanceText;
     public float displayDistance;
-
     public Text speedText;
+
+    public float points = 0;
+    public Text pointsText;
+
+    public int config_points_cheese = 10;
+    public int config_points_gates = 100;
+    public int config_points_distance = 1;
 
     [System.NonSerialized]
     public GameObject[] items;
@@ -50,11 +61,14 @@ public class Player : MonoBehaviour
     public int localDistanceToGate;
     [System.NonSerialized]
     public float completedDistance;
-    int minRandDistance = 180;
+    int minRandDistance = 140;
     int maxRandDistance = 360;
 
+    Queue<int> keyBuffer;
+    public int config_key_buffer_count = 3;
+
     // How well the player has done
-    int completedLevels;
+    public int completedLevels;
 
     void Start()
     {
@@ -62,7 +76,7 @@ public class Player : MonoBehaviour
         leftmostLane = 0; // The number of lanes can change depending on conditions during play
         rightmostLane = 4;
         currentLane = 2;
-        overallAcceleration = 2; // Different conditions can have different default acceleration
+        overallAcceleration = 1.5f; // Different conditions can have different default acceleration
         currentVelocity = minVelocity;
 
         // Set default display and get the distance for the first gate from the UI
@@ -72,13 +86,34 @@ public class Player : MonoBehaviour
         speedDisplay.SetRange();
         completedDistance = 0;
         completedLevels = 0;
+        keyBuffer = new Queue<int>();
     }
 
     void Update()
     {
+        //Debug.Log("Key Buffer Count " + keyBuffer.Count);
+        if (togglePickups)
+        {
+            if(pickupDelay < 0)
+            {
+                ToggleSpawnPickups();
+                togglePickups = false;
+
+            }
+            else
+            {
+                pickupDelay -= Time.deltaTime;
+            }
+        }
+        //Display distance and speed
         displayDistance = (displayDistance - (currentVelocity * Time.deltaTime));
         distanceText.text = ((int)displayDistance).ToString();
         speedText.text = ((int)currentVelocity).ToString();
+
+        //Add points and display
+        points += Time.deltaTime * currentVelocity * config_points_distance;
+        pointsText.text = ((int)points).ToString();
+
         // Rotate planet according to player's velocity and mark the amount of distance completed
         planet.transform.Rotate(-currentVelocity * Time.deltaTime, 0, 0);
         completedDistance += currentVelocity * Time.deltaTime;
@@ -86,6 +121,7 @@ public class Player : MonoBehaviour
         //animation.CrossFade("idle"); // else play "idle"
 
         // Accelerate regularly
+        
         currentVelocity = currentVelocity + overallAcceleration * Time.deltaTime;
         if (currentVelocity > maxVelocity)
         {
@@ -96,18 +132,41 @@ public class Player : MonoBehaviour
         HandleGates();
 
         // Check for and handle lane changes
-        float hAxis = Input.GetAxis("Horizontal");
-        if (!isChangingLeft && !isChangingRight)
+
+        if (Input.GetKeyDown(KeyCode.LeftArrow)){
+            queueKeyDownLeft();
+        }
+
+        if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            if (hAxis < -0.1 && currentLane > leftmostLane)
+            queueKeyDownRight();
+        }
+
+        if (!isChangingLeft && !isChangingRight && keyBuffer.Count > 0)
+        {
+            if (keyBuffer.Peek() == -1)
             {
-                destinationLane = currentLane - 1;
-                isChangingLeft = true;
+                if (currentLane > leftmostLane)
+                {
+                    keyBuffer.Dequeue();
+                    destinationLane = currentLane - 1;
+                    isChangingLeft = true;
+                } else
+                {
+                    keyBuffer.Dequeue();
+                }
             }
-            else if (hAxis > 0.1 && currentLane < rightmostLane)
+            else if (keyBuffer.Peek() == 1)
             {
-                destinationLane = currentLane + 1;
-                isChangingRight = true;
+                if (currentLane < rightmostLane)
+                {
+                    keyBuffer.Dequeue();
+                    destinationLane = currentLane + 1;
+                    isChangingRight = true;
+                } else
+                {
+                    keyBuffer.Dequeue();
+                }
             }
 
         }
@@ -135,6 +194,46 @@ public class Player : MonoBehaviour
                 playerRotationCore.Rotate(0, 0, -laneChangeVel * Time.deltaTime);
             }
         }
+
+        /*        float hAxis = Input.GetAxis("Horizontal"); //Old Input Handling
+                if (!isChangingLeft && !isChangingRight)
+                {
+                    if (hAxis < -0.1 && currentLane > leftmostLane)
+                    {
+                        destinationLane = currentLane - 1;
+                        isChangingLeft = true;
+                    }
+                    else if (hAxis > 0.1 && currentLane < rightmostLane)
+                    {
+                        destinationLane = currentLane + 1;
+                        isChangingRight = true;
+                    }
+
+                }
+                else if (isChangingLeft)
+                {
+                    if (playerRotationCore.rotation.z >= laneAngles[destinationLane])
+                    {
+                        currentLane = destinationLane;
+                        isChangingLeft = false;
+                    }
+                    else // Rotate player toward the new lane
+                    {
+                        playerRotationCore.Rotate(0, 0, laneChangeVel * Time.deltaTime);
+                    }
+                }
+                else if (isChangingRight)
+                {
+                    if (playerRotationCore.rotation.z <= laneAngles[destinationLane])
+                    {
+                        currentLane = destinationLane;
+                        isChangingRight = false;
+                    }
+                    else // Rotate player toward the new lane
+                    {
+                        playerRotationCore.Rotate(0, 0, -laneChangeVel * Time.deltaTime);
+                    }
+                }*/
     }
 
     // Handles logic determining whether to change gates or end the game
@@ -147,10 +246,17 @@ public class Player : MonoBehaviour
         {
             // checks if the current speed of the player (ascertained from the slider value) 
             // is within the top and bottom ranges.  If so, player has met the threshold for the next level
-            if (speedDisplay.slider.value > botRange && speedDisplay.slider.value < topRange)
+            if ((speedDisplay.slider.value > botRange && speedDisplay.slider.value < topRange) || gateChecked)
             {
+                Debug.Log(topRange);
+                Debug.Log(speedDisplay.slider.value);
+                Debug.Log(botRange);
+               
+                points += config_points_gates;
                 completedLevels++;
-
+                overallAcceleration = overallAcceleration + (.1f * completedLevels);
+                maxVelocity += (.5f * completedLevels);
+                minVelocity += (.5f * completedLevels);
                 // Update the limits on speed values for the next level
                 ManipulateRangeForNewLevel();
 
@@ -164,12 +270,39 @@ public class Player : MonoBehaviour
                 // Reset completedDistance and update localDistanceToGate for the next level
                 completedDistance = 0;
                 ManipulateDistanceForNewLevel();
+                ToggleSpawnPickups();
+                pickupDelay = 1.0f; //Timer to disable pickups
+                togglePickups = true;
+                DestroyAllGratables();
+                gateChecked = false;
             }
             else // if the current speed is NOT within range, player loses
             {
-                Debug.Log("DEFEAT"); // bool or function to signify end of game
-                SceneManager.LoadScene("GameOver");
+                gateChecked = true;
+                lives--;
+                Debug.Log("Lives : " + lives);
+                if (lives <= 0)
+                {
+                    Debug.Log("DEFEAT"); // bool or function to signify end of game
+                    SceneManager.LoadScene("GameOver");
+                }
             }
+        }
+    }
+
+    void queueKeyDownLeft()
+    {
+        if(keyBuffer.Count <= config_key_buffer_count)
+        {
+            keyBuffer.Enqueue(-1);
+        }
+    }
+
+    void queueKeyDownRight()
+    {
+        if (keyBuffer.Count <= config_key_buffer_count)
+        {
+            keyBuffer.Enqueue(1);
         }
     }
 
@@ -226,9 +359,11 @@ public class Player : MonoBehaviour
 
     void OnTriggerEnter(Collider objectHit)
     {
+        CHEESE.Play();
         GratableObject objectQualities = objectHit.GetComponent<GratableObject>();
         if (objectQualities != null)
         {
+            points += config_points_cheese;
             currentVelocity = currentVelocity - objectQualities.slowdownOnHit;
             if (currentVelocity < minVelocity)
             {
@@ -236,5 +371,18 @@ public class Player : MonoBehaviour
             }
         }
         objectQualities.EmitParticlesAndDestroy(planet);
+    }
+
+    public void ToggleSpawnPickups()
+    {
+        Debug.Log("Spawn Toggled");
+        SpawnGratable script = (SpawnGratable)GameObject.Find("Planet").GetComponent<SpawnGratable>();
+        script.ToggleSpawnPickups();
+    }
+
+    public void DestroyAllGratables()
+    {
+        SpawnGratable script = (SpawnGratable)GameObject.Find("Planet").GetComponent<SpawnGratable>();
+        script.DestroyAllGratables();
     }
 }
