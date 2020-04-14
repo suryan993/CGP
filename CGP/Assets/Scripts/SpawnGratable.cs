@@ -34,7 +34,7 @@ public class SpawnGratable : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        gratableAngle = gratableAngle - (1f * completedLevels);
+        gratableAngle = gratableAngle - (2f * completedLevels);
         if (gratableAngle <= 3)
             gratableAngle = 3;
         // checks the angle based on the last obstacle and checks if it is greater than
