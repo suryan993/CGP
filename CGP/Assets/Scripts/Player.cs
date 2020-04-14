@@ -39,6 +39,7 @@ public class Player : MonoBehaviour
     public Text distanceText;
     public float displayDistance;
     public Text speedText;
+    public Text lifeText;
 
     public float points = 0;
     public Text pointsText;
@@ -105,10 +106,11 @@ public class Player : MonoBehaviour
                 pickupDelay -= Time.deltaTime;
             }
         }
-        //Display distance and speed
+        //Display distance and speed and current Lives
         displayDistance = (displayDistance - (currentVelocity * Time.deltaTime));
         distanceText.text = ((int)displayDistance).ToString();
         speedText.text = ((int)currentVelocity).ToString();
+        lifeText.text = "x" + lives.ToString();
 
         //Add points and display
         points += Time.deltaTime * currentVelocity * config_points_distance;
