@@ -45,6 +45,8 @@ public class Player : MonoBehaviour
     public float points = 0;
     public Text pointsText;
 
+    public Text livesText;
+
     public int config_points_cheese = 10;
     public int config_points_gates = 100;
     public int config_points_distance = 1;
@@ -111,6 +113,8 @@ public class Player : MonoBehaviour
         displayDistance = (displayDistance - (currentVelocity * Time.deltaTime));
         distanceText.text = ((int)displayDistance).ToString();
         speedText.text = ((int)currentVelocity).ToString();
+
+        livesText.text = "x"+lives.ToString();
 
         //Add points and display
         points += Time.deltaTime * currentVelocity * config_points_distance;
