@@ -26,7 +26,8 @@ public class SpeedInfo : MonoBehaviour
     void Awake()
     {
         // set the slider to the component part
-        slider = GetComponent<Slider>();
+        //slider = GetComponent<Slider>();
+        slider = GameObject.FindGameObjectWithTag("SpeedSlider").GetComponent<Slider>();
 
         // set the range values to their defaults
         topRangeValue = DEFAULT_BOTTOM_VALUE;

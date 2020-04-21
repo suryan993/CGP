@@ -8,6 +8,8 @@ TagManager:
   - Gratable
   - PickUp
   - Environment
+  - SpeedSlider
+  - AccelerationSlider
   layers:
   - Default
   - TransparentFX

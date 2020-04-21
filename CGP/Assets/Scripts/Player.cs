@@ -16,6 +16,7 @@ public class Player : MonoBehaviour
     float minAcceleration = 0.15f;
     float maxAcceleration = 15f;
     public SpeedInfo speedDisplay;
+    public AccelerationInfo accelerationDisplay;
     float[] laneAngles = { 0.02f, 0.01f, 0.0f, -0.01f, -0.02f }; // z values for where to rotate to be in each lane
     int leftmostLane; // array index to show how far the player is allowed to move at present
     int rightmostLane; // all these ints are array indices
@@ -136,6 +137,7 @@ public class Player : MonoBehaviour
 
         // Checks and changes the gates
         HandleGates();
+        accelerationDisplay.DisplayCurrentAcceleration(overallAcceleration, minAcceleration, maxAcceleration);
 
         // Check for and handle lane changes
 
