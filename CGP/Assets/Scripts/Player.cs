@@ -395,9 +395,20 @@ public class Player : MonoBehaviour
         PowerUp powerUp = pickUpHit.GetComponent<PowerUp>();
         if(powerUp != null)
         {
-            overallAcceleration += powerUp.powerUpValue;
+            if (powerUp.powerUPType == PowerUpType.Accelerate)
+            {
+                overallAcceleration += powerUp.powerUpValue;
+            } else if(powerUp.powerUPType == PowerUpType.Decelerate)
+            {
+                overallAcceleration -= powerUp.powerUpValue;
+            } else
+            {
+                overallAcceleration += powerUp.powerUpValue;
+            }
             if (overallAcceleration < minAcceleration)
                 overallAcceleration = minAcceleration;
+            if (overallAcceleration > maxAcceleration)
+                overallAcceleration = maxAcceleration;
         }
         powerUp.EmitParticlesAndDestroy(planet);
     }
