@@ -18,7 +18,7 @@ public class SpawnGratable : MonoBehaviour
     float radius = 25;
     float playerHeight = 0.25f;
     float[] laneAngles = { 0.02f, 0.01f, 0.0f, -0.01f, -0.02f };
-    float gratableAngle = 20;
+    float gratableAngle = 10;
 
     // the newest obstacle in the scene
     GameObject lastGratable;
