@@ -24,6 +24,7 @@ public class Player : MonoBehaviour
     int destinationLane;
     bool isChangingLeft = false;
     bool isChangingRight = false;
+    bool accelerationBlock = false;
     float laneChangeVel = 6; // player speed in z rotating around the playerRotationCore
     float pickupDelay = 0f;
     bool togglePickups = false;
@@ -128,11 +129,13 @@ public class Player : MonoBehaviour
         //animation.CrossFade("idle"); // else play "idle"
 
         // Accelerate regularly
-        
-        currentVelocity = currentVelocity + overallAcceleration * Time.deltaTime;
-        if (currentVelocity > maxVelocity)
+        if (!accelerationBlock)
         {
-            currentVelocity = maxVelocity;
+            currentVelocity = currentVelocity + overallAcceleration * Time.deltaTime;
+            if (currentVelocity > maxVelocity)
+            {
+                currentVelocity = maxVelocity;
+            }
         }
 
         // Checks and changes the gates
@@ -252,6 +255,7 @@ public class Player : MonoBehaviour
         // checks if current localDistanceToGate is equal to the current distance 
         if (completedDistance >= localDistanceToGate)
         {
+            accelerationBlock = false;
             // checks if the current speed of the player (ascertained from the slider value) 
             // is within the top and bottom ranges.  If so, player has met the threshold for the next level
             if ((speedDisplay.slider.value > botRange && speedDisplay.slider.value < topRange) || gateChecked)
@@ -380,6 +384,7 @@ public class Player : MonoBehaviour
         GratableObject objectQualities = objectHit.GetComponent<GratableObject>();
         if (objectQualities != null)
         {
+            accelerationBlock = false;
             points += config_points_cheese;
             currentVelocity = currentVelocity - objectQualities.slowdownOnHit;
             if (currentVelocity < minVelocity)
@@ -398,12 +403,14 @@ public class Player : MonoBehaviour
             if (powerUp.powerUPType == PowerUpType.Accelerate)
             {
                 overallAcceleration += powerUp.powerUpValue;
+                accelerationBlock = false;
             } else if(powerUp.powerUPType == PowerUpType.Decelerate)
             {
                 overallAcceleration -= powerUp.powerUpValue;
+                accelerationBlock = false;
             } else
             {
-                overallAcceleration += powerUp.powerUpValue;
+                accelerationBlock = true;
             }
             if (overallAcceleration < minAcceleration)
                 overallAcceleration = minAcceleration;
